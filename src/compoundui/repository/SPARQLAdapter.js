@@ -427,8 +427,11 @@ lore.ore.repos.SPARQLAdapter = Ext.extend(lore.ore.repos.RepositoryAdapter,{
         var xhr = new XMLHttpRequest();                
         xhr.overrideMimeType('text/xml');
         var oThis = this;
-        xhr.open("PUT", this.reposURL + this.graphStoreEndPoint + "?graph=" + remid);
-        xhr.setRequestHeader("Content-type","application/turtle");
+        // AWM: NOTE: had to change ?graph= to ?context= here for sesame.
+        xhr.open("PUT", this.reposURL + this.graphStoreEndPoint + "?context=" + remid);
+        // Had to change the MIME-TYPE from application/turtle to application/x-turtle
+        // as that is what sesame uses.
+        xhr.setRequestHeader("Content-type","application/x-turtle");
         xhr.onreadystatechange= function(){
             if (xhr.readyState == 4) {
                 lore.debug.ore("lorestore: RDF saved");
