@@ -12,12 +12,16 @@ lore.constants = {
      // The url to the folder this file is located in
 	 baseUrl: window.location.href.substring(0, window.location.href.lastIndexOf("/") + 1),
 	 // The url of the SPARQL repository
-	 repositoryBaseURL: "/openrdf-sesame",
+     //
+     // This appears to be used both as the location of the repository AND as the base for
+     // context URIs. The resulting context URIs are therefore relative and not valid URIrefs
+     // Sesame is justifiably rejecting this request.
+	 repositoryBaseURL: "/openrdf-sesame/repositories/resource-maps",
 	 // The suffix for the graphstore endpoint on the SPARQL repository
-	 repositoryGraphStoreEndPoint: "/data",
+	 repositoryGraphStoreEndPoint: "/statements",
 	 // The url prefix for triples in the repository
 	 // Is generally repositoryBaseURL + repositoryGraphStoreEndPoint
-	 repositoryGraphNamePrefix: "http://localhost/op/data/",
+	 repositoryGraphNamePrefix: "http://qldarch.net/rdf/compound/2013-09-20",
 
 	 /*baseUrl: "http://115.146.93.139/virtual_lab/toolLibrary/annotation/lore-test-2/", 	 
 	 repositoryBaseURL: "http://corbicula.huni.net.au/dataset",
