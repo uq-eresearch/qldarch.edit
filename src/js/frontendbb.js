@@ -75,6 +75,7 @@ var frontend = (function() {
     var QA_INDEFINITE_MAP_ICON = QA_NS + "indefiniteMapIcon";
     var QA_REQUIRED_TO_CREATE = QA_NS + "requiredToCreate";
     var QA_ASSERTION_DATE = QA_NS + "assertionDate";
+    var QA_TEXTUAL_NOTE = QA_NS + "textualNote";
 
     var QA_REFERENCES = QA_NS + "references";
     var QA_REGION_START = QA_NS + "regionStart";
@@ -122,8 +123,21 @@ var frontend = (function() {
     var FOAF_NAME = FOAF_NS + "name";
     var QA_FIRM_NAME = QA_NS + "firmName";
 
+    var QA_STRUCTURE_TYPE = QA_NS + "Structure";
     var QA_BUILDING_TYPOLOGY = QA_NS + "BuildingTypology";
     var QA_BUILDING_TYPOLOGY_P = QA_NS + "buildingTypology";
+
+    var QA_TOPIC_TYPE = QA_NS + "Topic";
+    var QA_TOPIC_HEADING = QA_NS + "topicHeading";
+
+    var QA_PUBLICATION_TYPE = QA_NS + "Publication";
+    var QA_CITATION = QA_NS + "citation";
+
+    var QA_EVENT_TYPE = QA_NS + "Event";
+    var QA_EVENT_TITLE = QA_NS + "eventTitle";
+
+    var QA_AWARD_TYPE = QA_NS + "Award";
+    var QA_AWARD_TITLE = QA_NS + "awardTitle";
 
     var DCT_TITLE = DCT_NS + "title";
     var DCT_CREATED = DCT_NS + "created";
@@ -187,6 +201,34 @@ var frontend = (function() {
             var tname = thing.get1(DCT_TITLE);
             if (tname && !_.isEmpty(tname.trim())) {
                 return tname.trim();
+            }
+        }
+
+        if (_.contains(thing.geta(RDF_TYPE), QA_TOPIC_TYPE)) {
+            var tname = thing.get1(QA_TOPIC_HEADING);
+            if (tname && !_.isEmpty(tname.trim())) {
+                return tname.trim();
+            }
+        }
+
+        if (_.contains(thing.geta(RDF_TYPE), QA_PUBLICATION_TYPE)) {
+            var cname = thing.get1(QA_CITATION);
+            if (cname && !_.isEmpty(cname.trim())) {
+                return cname.trim();
+            }
+        }
+
+        if (_.contains(thing.geta(RDF_TYPE), QA_EVENT_TYPE)) {
+            var ename = thing.get1(QA_EVENT_TITLE);
+            if (ename && !_.isEmpty(ename.trim())) {
+                return ename.trim();
+            }
+        }
+
+        if (_.contains(thing.geta(RDF_TYPE), QA_AWARD_TYPE)) {
+            var awname = thing.get1(QA_AWARD_TITLE);
+            if (awname && !_.isEmpty(awname.trim())) {
+                return awname.trim();
             }
         }
 
@@ -2759,6 +2801,10 @@ var frontend = (function() {
             entityselection: ".entityselection",
         },
 
+        ui: {
+            note: "textarea[name='note']",
+        },
+
         triggers: {
             "click .addrefersto" : "add:refersTo",
             "click .cancelrefersto" : "cancel:refersTo",
@@ -2794,7 +2840,10 @@ var frontend = (function() {
         onAddRefersTo: function() {
             if (this.selectionURI) {
                 var entity = this.entities.get(this.selectionURI);
-                this.triggerMethod("simple:add", entity);
+                this.triggerMethod("simple:add", {
+                    entity: entity,
+                    note: this.ui.note.val()
+                });
             } else {
                 console.log("No entity selected");
             }
@@ -2814,6 +2863,7 @@ var frontend = (function() {
             relselect: "select[name='relationship']",
             fromdate: "input[name='fromdate']",
             todate: "input[name='todate']",
+            note: "textarea[name='note']",
         },
 
         triggers: {
@@ -2889,6 +2939,11 @@ var frontend = (function() {
                 if (!p) {
                     console.log("no p");
                     console.log(pURI);
+                    return;
+                }
+                console.log("BOO");
+                console.log(p.id);
+                if (p.id == QA_RELATED_TO) {
                     return;
                 }
                 var domain = p.geta(RDFS_DOMAIN);
@@ -3002,6 +3057,7 @@ var frontend = (function() {
                     objectURI: this.objectURI,
                     fromDate: this.dates.fromdate,
                     toDate: this.dates.todate,
+                    note: this.ui.note.val()
                 };
 
                 console.log("Valid relationship identified");
@@ -3015,10 +3071,16 @@ var frontend = (function() {
         tagName: "tr",
         template: "#annotationrowTemplate",
 
+        events: {
+            "click button[name=delete]"   : "onDelete",
+        },
+
         serializeData: function() {
+            console.log(this.model);
             var subject = this.model.get1(QA_SUBJECT);
             var predicate = this.model.get1(QA_PREDICATE);
             var object = this.model.get1(QA_OBJECT);
+            var note = this.model.geta(QA_TEXTUAL_NOTE);
 
             var contentDescription = this.contentDescriptionSource.get('contentDescription');
 
@@ -3047,6 +3109,7 @@ var frontend = (function() {
                 subject: subjectLabel,
                 relationship: predicateLabel,
                 object: objectLabel,
+                note: (note.length > 0) ? note[0] : "",
             };
         },
 
@@ -3055,6 +3118,14 @@ var frontend = (function() {
             this.entities = _.checkarg(options.entities).throwNoArg("options.entities");
             this.contentDescriptionSource = _.checkarg(options.contentDescriptionSource)
                 .throwNoArg("options.contentDescriptionSource");
+        },
+
+        onDelete: function() {
+            console.log("doing delete...");
+            console.log(this.model.get1(QA_EVIDENCE));
+            this.triggerMethod("perform:delete", {
+                evidence: this.model.get1(QA_EVIDENCE)
+            });
         },
     });
 
@@ -3210,6 +3281,12 @@ var frontend = (function() {
             });
             window.atvcol = this.collection;
         },
+
+        onItemviewPerformDelete: function(child, ev) {
+            console.log('parent delete: ' + ev.evidence);
+            console.log(ev);
+            this.triggerMethod("perform:delete", ev);
+        },
     });
 
     var AddEntityAttributeView = Backbone.Marionette.ItemView.extend({
@@ -3255,6 +3332,11 @@ var frontend = (function() {
             };
         },
 
+        ui: {
+            types: "div.typologies",
+            typeselect: "select[name=typology]"
+        },
+
         events: {
             "click button[name=add]"   : "doAdd",
             "click button[name=cancel]"   : "doCancel",
@@ -3290,8 +3372,17 @@ var frontend = (function() {
                 comparator: QA_DISPLAY_PRECEDENCE,
             });
         },
+        
+        onRender: function() {
+            if (this.entity.id != QA_STRUCTURE_TYPE) {
+                this.ui.types.hide();
+            }
+        },
 
         doAdd: function() {
+            if (this.entity.id == QA_STRUCTURE_TYPE) {
+                this.target[QA_BUILDING_TYPOLOGY_P] = this.ui.typeselect.val();
+            }
             this.triggerMethod("perform:add", this.target);
         },
 
@@ -3345,6 +3436,7 @@ var frontend = (function() {
                 properties: this.properties,
                 relationships: this.relationships,
             });
+            this.listenTo(this.annotationsView, "perform:delete", this.onChildPerformDelete);
             this.annotations.show(this.annotationsView);
         },
 
@@ -3387,6 +3479,11 @@ var frontend = (function() {
 
         onChildFullAdd: function(entity) {
             this.triggerMethod("full:add", entity);
+        },
+
+        onChildPerformDelete: function(ev) {
+            console.log('passing delete');
+            this.triggerMethod("perform:delete", ev);
         },
 
         onAddEntity: function(entity) {
@@ -3461,6 +3558,7 @@ var frontend = (function() {
                 view.listenTo(av, "simple:add", view.onSimpleAdd);
                 view.listenTo(av, "full:add", view.onFullAdd);
                 view.listenTo(av, "perform:addEntity", view.onAddEntity);
+                view.listenTo(av, "perform:delete", view.onDeleteAnnotation);
                 return av;
             },
         },
@@ -3552,13 +3650,17 @@ var frontend = (function() {
             }
         },
 
-        onSimpleAdd: function(entity) {
+        onSimpleAdd: function(ent) {
+            var entity = ent.entity;
             var rdf = {};
             rdf[RDF_TYPE] = QA_REFERENCE_TYPE;
             rdf[QA_SUBJECT] = this.contentDescriptionSource.get('contentDescription').id +
                 "#@" + this.currentUtterance.get('start');
             rdf[QA_PREDICATE] = QA_REFERENCES;
             rdf[QA_OBJECT] = entity.id;
+            if (ent.note) {
+                rdf[QA_TEXTUAL_NOTE] = ent.note;
+            }
 
             var evidence = rdf[QA_EVIDENCE] = {};
             evidence[RDF_TYPE] = QA_EVIDENCE_TYPE;
@@ -3604,6 +3706,9 @@ var frontend = (function() {
             }
             if (rel.toDate) {
                 rdf[QA_END_DATE] = rel.toDate;
+            }
+            if (rel.note) {
+                rdf[QA_TEXTUAL_NOTE] = rel.note;
             }
 
             var evidence = rdf[QA_EVIDENCE] = {};
@@ -3665,6 +3770,26 @@ var frontend = (function() {
             }, this)).fail(function(jqXHR, textStatus, errorThrown) {
                 console.log("failure");
                 console.log(rdf);
+                console.log(errorThrown);
+                console.log(textStatus);
+                console.log(jqXHR);
+                console.log(jqXHR.status);
+            });
+        },
+
+        onDeleteAnnotation: function(ev) {
+            $.ajax({
+                type: 'DELETE',
+                url: JSON_ROOT + 'annotation/evidence?ID=' + encodeURIComponent(ev.evidence),
+            }).done(_.bind(function(data, textStatus, jqXHR) {
+                console.log("success");
+                console.log(data);
+                console.log(textStatus);
+                console.log(jqXHR);
+                console.log(jqXHR.status);
+                this.triggerMethod("utterance:refresh");
+            }, this)).fail(function(jqXHR, textStatus, errorThrown) {
+                console.log("failure");
                 console.log(errorThrown);
                 console.log(textStatus);
                 console.log(jqXHR);

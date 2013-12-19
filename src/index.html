@@ -306,6 +306,8 @@
                         <th>Subject</th>
                         <th>Relationship</th>
                         <th>Object</th>
+                        <th>Note</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -316,11 +318,19 @@
             <td><%- subject %></td>
             <td><%- relationship %></td>
             <td><%- object %></td>
+            <td><%- note %></td>
+            <td><button name="delete">&times;</button><td>
         </script>
         <script type="text/template" id="simpleannotationTemplate">
             <div class="referral">
                 <span>The current speaker mentions the </span>
                 <span class="entityselection">Entity Selection</span>
+                <div>
+                    <span style="padding-left:153px">
+                        <span>Note: </span>
+                        <textarea name="note" placeholder="Supplementary Note" rows="3" style="height:auto;vertical-align:middle"></textarea>
+                    </span>
+                </div>
                 <div class="referral-buttons">
                     <button class="cancelrefersto">Cancel</button>
                     <button class="addrefersto">Add Simple Annotation</button>
@@ -346,6 +356,12 @@
                     <span>to: </span>
                     <input name="todate" type="text" pattern="^\\d\\d\\d\\d(-\\d\\d){0,2}" placeholder="yyyy[-mm[-dd]]" class="date"/>
                 </span>
+                <div>
+                    <span style="padding-left:153px">
+                        <span>Note: </span>
+                        <textarea name="note" placeholder="Supplementary Note" rows="3" style="height:auto;vertical-align:middle"></textarea>
+                    </span>
+                </div>
                 <div class="referral-buttons">
                     <button class="cancelrefersto">Cancel</button>
                     <button class="addrefersto">Add Full Annotation</button>
@@ -367,6 +383,20 @@
         <script type="text/template" id="addentityTemplate">
             <h3>Add new <%- typelabel %>:</h3>
             <div class="attributes"></div>
+            <div class="typologies">
+                <label>Building Typology</label>
+                <select name="typology">
+                    <option value="http://qldarch.net/rdf/2012-12/resources/typologies/1">Commercial Buildings</option>
+                    <option value="http://qldarch.net/rdf/2012-12/resources/typologies/2">Dwellings</option>
+                    <option value="http://qldarch.net/rdf/2012-12/resources/typologies/3">Educational facilities</option>
+                    <option value="http://qldarch.net/rdf/2012-12/resources/typologies/4">Government buildings</option>
+                    <option value="http://qldarch.net/rdf/2012-12/resources/typologies/5">Health care facilities</option>
+                    <option value="http://qldarch.net/rdf/2012-12/resources/typologies/6">Recreation and sports facilities</option>
+                    <option value="http://qldarch.net/rdf/2012-12/resources/typologies/7">Religious buildings</option>
+                    <option value="http://qldarch.net/rdf/2012-12/resources/typologies/8">Transport infrastructure</option>
+                </select>
+                <span>*</span>
+            </div>
             <div class="dialogbuttons">
                 <button name="add">Add <%- typelabel %></button>
                 <button name="cancel">Cancel</button>
